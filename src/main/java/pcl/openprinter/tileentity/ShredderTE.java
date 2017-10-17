@@ -18,13 +18,14 @@ import net.minecraft.util.ITickable;
 import net.minecraft.util.text.ITextComponent;
 import pcl.openprinter.ContentRegistry;
 import pcl.openprinter.items.PrintedPage;
+import net.minecraft.util.NonNullList;
 
 /**
  * @author Caitlyn
  *
  */
 public class ShredderTE extends TileEntity implements ITickable, IInventory, ISidedInventory {
-	private ItemStack[] shredderItemStacks = new ItemStack[20];
+	private NonNullList<ItemStack> shredderItemStacks = NonNullList.withSize(20, ItemStack.EMPTY);
 
 	private int processingTime = 0;
 
@@ -37,14 +38,14 @@ public class ShredderTE extends TileEntity implements ITickable, IInventory, ISi
 	{
 		super.readFromNBT(par1NBTTagCompound);
 		NBTTagList var2 = par1NBTTagCompound.getTagList("Items",par1NBTTagCompound.getId());
-		this.shredderItemStacks = new ItemStack[this.getSizeInventory()];
+		this.shredderItemStacks = NonNullList.withSize(this.getSizeInventory(), ItemStack.EMPTY);
 		for (int var3 = 0; var3 < var2.tagCount(); ++var3)
 		{
 			NBTTagCompound var4 = (NBTTagCompound)var2.getCompoundTagAt(var3);
 			byte var5 = var4.getByte("Slot");
-			if (var5 >= 0 && var5 < this.shredderItemStacks.length)
+			if (var5 >= 0 && var5 < this.shredderItemStacks.size())
 			{
-				this.shredderItemStacks[var5] = new ItemStack(var4);
+				this.shredderItemStacks.set(var5,  new ItemStack(var4));
 			}
 		}
 	}
@@ -54,13 +55,13 @@ public class ShredderTE extends TileEntity implements ITickable, IInventory, ISi
 	{
 		super.writeToNBT(par1NBTTagCompound);
 		NBTTagList var2 = new NBTTagList();
-		for (int var3 = 0; var3 < this.shredderItemStacks.length; ++var3)
+		for (int var3 = 0; var3 < this.shredderItemStacks.size(); ++var3)
 		{
-			if (this.shredderItemStacks[var3] != null)
+			if (!this.shredderItemStacks.get(var3).isEmpty())
 			{
 				NBTTagCompound var4 = new NBTTagCompound();
 				var4.setByte("Slot", (byte)var3);
-				this.shredderItemStacks[var3].writeToNBT(var4);
+				this.shredderItemStacks.get(var3).writeToNBT(var4);
 				var2.appendTag(var4);
 			}
 		}
@@ -86,7 +87,7 @@ public class ShredderTE extends TileEntity implements ITickable, IInventory, ISi
 
 	@Override
 	public int getSizeInventory() {
-		return this.shredderItemStacks.length;
+		return this.shredderItemStacks.size();
 	}
 
 	@Override
@@ -100,7 +101,7 @@ public class ShredderTE extends TileEntity implements ITickable, IInventory, ISi
 
 	@Override
 	public ItemStack getStackInSlot(int i) {
-		return this.shredderItemStacks[i];
+		return this.shredderItemStacks.get(i);
 	}
 
 	@Override
@@ -121,12 +122,12 @@ public class ShredderTE extends TileEntity implements ITickable, IInventory, ISi
 
 	public void incStackSize(int i, int amt) {
 
-		if(shredderItemStacks[i] == null)
+		if(shredderItemStacks.get(i).isEmpty())
 			return;
-		else if(shredderItemStacks[i].getCount() + amt > shredderItemStacks[i].getMaxStackSize())
-			shredderItemStacks[i].setCount(shredderItemStacks[i].getMaxStackSize());
+		else if(shredderItemStacks.get(i).getCount() + amt > shredderItemStacks.get(i).getMaxStackSize())
+			shredderItemStacks.get(i).setCount(shredderItemStacks.get(i).getMaxStackSize());
 		else
-			shredderItemStacks[i].setCount(shredderItemStacks[i].getCount() + amt);
+			shredderItemStacks.get(i).setCount(shredderItemStacks.get(i).getCount() + amt);
 	}
 
 	@Override
@@ -145,7 +146,7 @@ public class ShredderTE extends TileEntity implements ITickable, IInventory, ISi
 
 	@Override
 	public void setInventorySlotContents(int i, ItemStack itemstack) {
-		this.shredderItemStacks[i] = itemstack;
+		this.shredderItemStacks.set(i, itemstack);
 		if (!itemstack.isEmpty() && itemstack.getCount() > this.getInventoryStackLimit())
 		{
 			itemstack.setCount(this.getInventoryStackLimit());
@@ -192,7 +193,7 @@ public class ShredderTE extends TileEntity implements ITickable, IInventory, ISi
 							if (getStackInSlot(x).getCount() + 3 > 64 && x < 18) {
 								for (int x2 = 1; x2 <= x - 9; x2++) {
 									if(getStackInSlot(x2 + 1) == null) {
-										this.shredderItemStacks[x + 1] = new ItemStack(ContentRegistry.shreddedPaper);
+										this.shredderItemStacks.set(x + 1, new ItemStack(ContentRegistry.shreddedPaper));
 										if (64 - getStackInSlot(x).getCount() == 1) {
 											incStackSize(x2 + 1, 64 - getStackInSlot(x).getCount());
 										}
@@ -208,7 +209,7 @@ public class ShredderTE extends TileEntity implements ITickable, IInventory, ISi
 						decrStackSize(0, 1);
 						break;
 					} else if (getStackInSlot(x) == null) {
-						this.shredderItemStacks[x] = new ItemStack(ContentRegistry.shreddedPaper);
+						this.shredderItemStacks.set(x,  new ItemStack(ContentRegistry.shreddedPaper));
 						if (getStackInSlot(0).getItem().equals(Items.BOOK) || getStackInSlot(0).getItem().equals(Items.WRITABLE_BOOK) || getStackInSlot(0).getItem().equals(Items.WRITTEN_BOOK)) {
 							incStackSize(x, 2);
 						}

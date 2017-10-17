@@ -11,6 +11,7 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraftforge.common.util.Constants;
 import pcl.openprinter.OpenPrinter;
+import net.minecraft.util.NonNullList;
 
 /**
  * @author Caitlyn
@@ -27,8 +28,7 @@ public class FolderInventory implements IInventory {
 	public static final int INV_SIZE = 9;
 
 	/** Inventory's size must be same as number of slots you add to the Container class */
-	private ItemStack[] inventory = new ItemStack[INV_SIZE];
-
+	private NonNullList<ItemStack> inventory = NonNullList.withSize(INV_SIZE, ItemStack.EMPTY);
 	private ItemStack stack;
 	
 	/**
@@ -59,16 +59,12 @@ public class FolderInventory implements IInventory {
 	 */
 	@Override
 	public int getSizeInventory() {
-		return inventory.length;
+		return inventory.size();
 	}
 
 	@Override
 	public boolean isEmpty() {
-		for (ItemStack s : inventory)
-		{
-			if (!s.isEmpty()) return false;
-		}
-		return true;
+		return inventory.isEmpty();
 	}
 
 	/* (non-Javadoc)
@@ -77,7 +73,7 @@ public class FolderInventory implements IInventory {
 	@Override
 	public ItemStack getStackInSlot(int slot)
 	{
-		return inventory[slot];
+		return inventory.get(slot);
 	}
 
 	/* (non-Javadoc)
@@ -87,7 +83,7 @@ public class FolderInventory implements IInventory {
 	public ItemStack decrStackSize(int slot, int amount)
 	{
 		ItemStack stack = getStackInSlot(slot);
-		if(stack != null)
+		if(!stack.isEmpty())
 		{
 			if(stack.getCount() > amount)
 			{
@@ -121,9 +117,9 @@ public class FolderInventory implements IInventory {
 	@Override
 	public void setInventorySlotContents(int slot, ItemStack stack)
 	{
-		inventory[slot] = stack;
+		inventory.set(slot, stack);
 
-		if (stack != null && !stack.isEmpty() && stack.getCount() > getInventoryStackLimit())
+		if (!stack.isEmpty() && stack.getCount() > getInventoryStackLimit())
 		{
 			stack.setCount(getInventoryStackLimit());
 		}
@@ -164,8 +160,8 @@ public class FolderInventory implements IInventory {
 	public void markDirty() {
 		for (int i = 0; i < getSizeInventory(); ++i)
 		{
-			if (getStackInSlot(i) != null && getStackInSlot(i).getCount() == 0) {
-				inventory[i] = null;
+			if (!getStackInSlot(i).isEmpty() && getStackInSlot(i).getCount() == 0) {
+				inventory.set(i, ItemStack.EMPTY);
 			}
 		}
 
@@ -212,7 +208,7 @@ public class FolderInventory implements IInventory {
 
 			// Just double-checking that the saved slot index is within our inventory array bounds
 			if (slot >= 0 && slot < getSizeInventory()) {
-				inventory[slot] = new ItemStack(item);
+				inventory.set(slot, new ItemStack(item));
 			}
 		}
 	}
@@ -228,7 +224,7 @@ public class FolderInventory implements IInventory {
 		for (int i = 0; i < getSizeInventory(); ++i)
 		{
 			// Only write stacks that contain items
-			if (getStackInSlot(i) != null)
+			if (!getStackInSlot(i).isEmpty())
 			{
 				// Make a new NBT Tag Compound to write the itemstack and slot index to
 				NBTTagCompound item = new NBTTagCompound();

@@ -96,6 +96,10 @@ public class ContentRegistry {
 		fileCabinetBlock = new BlockFileCabinet();
 		GameRegistry.register(init(fileCabinetBlock, "filecabinet"));
 
+		GameRegistry.register(init(new ItemBlock(printerBlock), "printer"));
+		GameRegistry.register(init(new ItemBlock(shredderBlock), "shredder"));
+		GameRegistry.register(init(new ItemBlock(fileCabinetBlock), "filecabinet"));
+
 		GameRegistry.registerTileEntity(PrinterTE.class, "PrinterTE");
 		GameRegistry.registerTileEntity(ShredderTE.class, "ShredderTE");
 		GameRegistry.registerTileEntity(FileCabinetTE.class, "FileCabinetTE");
@@ -105,14 +109,14 @@ public class ContentRegistry {
 		ItemStack redstone		= new ItemStack(Items.REDSTONE);
 		ItemStack shears		= new ItemStack(Items.SHEARS);
 		ItemStack microchip		= li.cil.oc.api.Items.get("chip1").createItemStack(1);
-		ItemStack pcb			= li.cil.oc.api.Items.get("printedCircuitBoard").createItemStack(1);
+		ItemStack pcb			= li.cil.oc.api.Items.get("printedcircuitboard").createItemStack(1);
 		String blackInk			= "dyeBlack";
 		String redInk			= "dyeRed";
 		String greenInk			= "dyeGreen";
 		String blueInk			= "dyeBlue";
 		ItemStack paper         = new ItemStack(Items.PAPER);
 
-		GameRegistry.addShapelessRecipe(paper, new Object[] { shreddedPaper, new ItemStack(Items.WATER_BUCKET) });
+		GameRegistry.addShapelessRecipe(paper, shreddedPaper, new ItemStack(Items.WATER_BUCKET) );
 
 		GameRegistry.addRecipe(new ShapedOreRecipe( new ItemStack(printerBlock, 1), 
 				"IRI",

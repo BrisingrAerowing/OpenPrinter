@@ -14,13 +14,14 @@ import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.text.ITextComponent;
 import pcl.openprinter.items.PrintedPage;
+import net.minecraft.util.NonNullList;
 
 /**
  * @author Caitlyn
  *
  */
 public class FileCabinetTE extends TileEntity implements IInventory {
-	public ItemStack[] fileCabinetItemStacks = new ItemStack[30];
+	public NonNullList<ItemStack> fileCabinetItemStacks = NonNullList.withSize(30, ItemStack.EMPTY);
 
 	public String name = "";
 
@@ -33,14 +34,14 @@ public class FileCabinetTE extends TileEntity implements IInventory {
 	{
 		super.readFromNBT(par1NBTTagCompound);
 		NBTTagList var2 = par1NBTTagCompound.getTagList("Items",par1NBTTagCompound.getId());
-		this.fileCabinetItemStacks = new ItemStack[this.getSizeInventory()];
+		this.fileCabinetItemStacks = NonNullList.withSize(this.getSizeInventory(), ItemStack.EMPTY);
 		for (int var3 = 0; var3 < var2.tagCount(); ++var3)
 		{
 			NBTTagCompound var4 = (NBTTagCompound)var2.getCompoundTagAt(var3);
 			byte var5 = var4.getByte("Slot");
-			if (var5 >= 0 && var5 < this.fileCabinetItemStacks.length)
+			if (var5 >= 0 && var5 < this.fileCabinetItemStacks.size())
 			{
-				this.fileCabinetItemStacks[var5] = new ItemStack(var4);
+				this.fileCabinetItemStacks.set(var5, new ItemStack(var4));
 			}
 		}
 		this.name = par1NBTTagCompound.getString("name");
@@ -51,13 +52,13 @@ public class FileCabinetTE extends TileEntity implements IInventory {
 	{
 		super.writeToNBT(par1NBTTagCompound);
 		NBTTagList var2 = new NBTTagList();
-		for (int var3 = 0; var3 < this.fileCabinetItemStacks.length; ++var3)
+		for (int var3 = 0; var3 < this.fileCabinetItemStacks.size(); ++var3)
 		{
-			if (this.fileCabinetItemStacks[var3] != null)
+			if (!this.fileCabinetItemStacks.get(var3).isEmpty())
 			{
 				NBTTagCompound var4 = new NBTTagCompound();
 				var4.setByte("Slot", (byte)var3);
-				this.fileCabinetItemStacks[var3].writeToNBT(var4);
+				this.fileCabinetItemStacks.get(var3).writeToNBT(var4);
 				var2.appendTag(var4);
 			}
 		}
@@ -84,21 +85,17 @@ public class FileCabinetTE extends TileEntity implements IInventory {
 
 	@Override
 	public int getSizeInventory() {
-		return this.fileCabinetItemStacks.length;
+		return this.fileCabinetItemStacks.size();
 	}
 
 	@Override
 	public boolean isEmpty() {
-		for(ItemStack s : fileCabinetItemStacks)
-		{
-			if (!s.isEmpty()) return false;
-		}
-		return true;
+		return this.fileCabinetItemStacks.isEmpty();
 	}
 
 	@Override
 	public ItemStack getStackInSlot(int i) {
-		return this.fileCabinetItemStacks[i];
+		return this.fileCabinetItemStacks.get(i);
 	}
 
 	@Override
@@ -119,17 +116,17 @@ public class FileCabinetTE extends TileEntity implements IInventory {
 
 	public void incStackSize(int i, int amt) {
 
-		if(fileCabinetItemStacks[i] == null)
+		if(fileCabinetItemStacks.get(i).isEmpty())
 			return;
-		else if(fileCabinetItemStacks[i].getCount() + amt > fileCabinetItemStacks[i].getMaxStackSize())
-			fileCabinetItemStacks[i].setCount(fileCabinetItemStacks[i].getMaxStackSize());
+		else if(fileCabinetItemStacks.get(i).getCount() + amt > fileCabinetItemStacks.get(i).getMaxStackSize())
+			fileCabinetItemStacks.get(i).setCount(fileCabinetItemStacks.get(i).getMaxStackSize());
 		else
-			fileCabinetItemStacks[i].setCount(fileCabinetItemStacks[i].getCount() + amt);
+			fileCabinetItemStacks.get(i).setCount(fileCabinetItemStacks.get(i).getCount() + amt);
 	}
 
 	@Override
 	public ItemStack removeStackFromSlot(int i) {
-		if (getStackInSlot(i) != null)
+		if (!getStackInSlot(i).isEmpty())
 		{
 			ItemStack var2 = getStackInSlot(i);
 			setInventorySlotContents(i,ItemStack.EMPTY);
@@ -143,8 +140,8 @@ public class FileCabinetTE extends TileEntity implements IInventory {
 
 	@Override
 	public void setInventorySlotContents(int i, ItemStack itemstack) {
-		this.fileCabinetItemStacks[i] = itemstack;
-		if (itemstack != null && itemstack.getCount() > this.getInventoryStackLimit())
+		this.fileCabinetItemStacks.set(i, itemstack);
+		if (itemstack.getCount() > this.getInventoryStackLimit())
 		{
 			itemstack.setCount(this.getInventoryStackLimit());
 		}

@@ -40,6 +40,7 @@ import pcl.openprinter.items.PrintedPage;
 import pcl.openprinter.items.PrinterInkBlack;
 import pcl.openprinter.items.PrinterInkColor;
 import pcl.openprinter.items.PrinterPaperRoll;
+import net.minecraft.util.NonNullList;
 
 /**
  * @author Caitlyn
@@ -120,7 +121,7 @@ public class PrinterTE extends TileEntity implements ITickable, Environment, IIn
 		}
 	}
 
-	private ItemStack[] printerItemStacks = new ItemStack[20];
+	private NonNullList<ItemStack> printerItemStacks = NonNullList.withSize(20, ItemStack.EMPTY);
 	private List<String> lines = new ArrayList<String>();
 	private List<String> align = new ArrayList<String>();
 	private List<Integer> colors = new ArrayList<Integer>();
@@ -145,14 +146,14 @@ public class PrinterTE extends TileEntity implements ITickable, Environment, IIn
 			oc_fs().node().load(nbt.getCompoundTag("oc:fs"));
 		}
 		NBTTagList var2 = nbt.getTagList("Items",nbt.getId());
-		this.printerItemStacks = new ItemStack[this.getSizeInventory()];
+		this.printerItemStacks = NonNullList.withSize(this.getSizeInventory(), ItemStack.EMPTY);
 		for (int var3 = 0; var3 < var2.tagCount(); ++var3)
 		{
 			NBTTagCompound var4 = (NBTTagCompound)var2.getCompoundTagAt(var3);
 			byte var5 = var4.getByte("Slot");
-			if (var5 >= 0 && var5 < this.printerItemStacks.length)
+			if (var5 >= 0 && var5 < this.printerItemStacks.size())
 			{
-				this.printerItemStacks[var5] = new ItemStack(var4);
+				this.printerItemStacks.set(var5, new ItemStack(var4));
 			}
 		}
 	}
@@ -174,13 +175,13 @@ public class PrinterTE extends TileEntity implements ITickable, Environment, IIn
 		}
 
 		NBTTagList var2 = new NBTTagList();
-		for (int var3 = 0; var3 < this.printerItemStacks.length; ++var3)
+		for (int var3 = 0; var3 < this.printerItemStacks.size(); ++var3)
 		{
-			if (this.printerItemStacks[var3] != null)
+			if (!this.printerItemStacks.get(var3).isEmpty())
 			{
 				NBTTagCompound var4 = new NBTTagCompound();
 				var4.setByte("Slot", (byte)var3);
-				this.printerItemStacks[var3].writeToNBT(var4);
+				this.printerItemStacks.get(var3).writeToNBT(var4);
 				var2.appendTag(var4);
 			}
 		}
@@ -226,7 +227,7 @@ public class PrinterTE extends TileEntity implements ITickable, Environment, IIn
 		String outPageTitle = null;
 		Map<Integer, String> output = new HashMap<Integer, String>();
 		if (scannedPage.getItem() instanceof PrintedPage) {
-			if (scannedPage.getTagCompound().getString("pageTitle") != null) {
+			if (!scannedPage.getTagCompound().getString("pageTitle").isEmpty()) {
 				outPageTitle = scannedPage.getTagCompound().getString("pageTitle");
 			}
 			for (int x = 0; x <= 20; x++) {
@@ -247,14 +248,14 @@ public class PrinterTE extends TileEntity implements ITickable, Environment, IIn
 					for (int x = 3; x <= 12; x++) { //Loop the 9 output slots checking for a empty one
 						if (!getStackInSlot(x).isEmpty()) { //The slot is empty lets make us a NameTag
 
-							printerItemStacks[x] = new ItemStack(Items.NAME_TAG);
-							printerItemStacks[x].setTagCompound(new NBTTagCompound());
+							printerItemStacks.set(x, new ItemStack(Items.NAME_TAG));
+							printerItemStacks.get(x).setTagCompound(new NBTTagCompound());
 
 							NBTTagCompound nameTag = new NBTTagCompound();
 
 							nameTag.setString("Name", args.checkString(0));
 
-							printerItemStacks[x].getTagCompound().setTag("display", nameTag);
+							printerItemStacks.get(x).getTagCompound().setTag("display", nameTag);
 
 							getStackInSlot(0).setItemDamage(getStackInSlot(0).getItemDamage() + 1);
 							if(getStackInSlot(0).getItemDamage() >= getStackInSlot(0).getMaxDamage()) {
@@ -281,17 +282,17 @@ public class PrinterTE extends TileEntity implements ITickable, Environment, IIn
 				if(getStackInSlot(2) != null) { //No paper
 					for (int x = 3; x <= 12; x++) { //Loop the 9 output slots checking for a empty one
 						if (getStackInSlot(x) == null) { //The slot is empty lets make us a new page
-							printerItemStacks[x] = new ItemStack(ContentRegistry.printedPage);
-							printerItemStacks[x].setTagCompound(new NBTTagCompound());
+							printerItemStacks.set(x, new ItemStack(ContentRegistry.printedPage));
+							printerItemStacks.get(x).setTagCompound(new NBTTagCompound());
 							if(pageTitle != "") {
-								printerItemStacks[x].getTagCompound().setString("pageTitle", pageTitle);
-								printerItemStacks[x].setStackDisplayName(pageTitle);
+								printerItemStacks.get(x).getTagCompound().setString("pageTitle", pageTitle);
+								printerItemStacks.get(x).setStackDisplayName(pageTitle);
 								pageTitle = "";
 							}
-							printerItemStacks[x].getTagCompound().setDouble("version", PrinterFormatVersion);
+							printerItemStacks.get(x).getTagCompound().setDouble("version", PrinterFormatVersion);
 							int iter = 0;
 							for (String s : lines) {
-								printerItemStacks[x].getTagCompound().setString("line"+iter, lines.get(iter) + "∞" + colors.get(iter) + "∞" + align.get(iter));
+								printerItemStacks.get(x).getTagCompound().setString("line"+iter, lines.get(iter) + "∞" + colors.get(iter) + "∞" + align.get(iter));
 
 								if (colors.get(iter) != 0x000000) {
 									markColor = true;
@@ -316,7 +317,7 @@ public class PrinterTE extends TileEntity implements ITickable, Environment, IIn
 							if (getStackInSlot(2).getItem() instanceof PrinterPaperRoll) {
 								getStackInSlot(2).setItemDamage(getStackInSlot(2).getItemDamage() + 1);
 								if(getStackInSlot(2).getItemDamage() >= getStackInSlot(2).getMaxDamage()) {
-									setInventorySlotContents(2, null);
+									setInventorySlotContents(2, ItemStack.EMPTY);
 								}
 							} else {
 								decrStackSize(2, 1);
@@ -324,13 +325,13 @@ public class PrinterTE extends TileEntity implements ITickable, Environment, IIn
 							if (markColor) {
 								getStackInSlot(1).setItemDamage(getStackInSlot(1).getItemDamage() + colorUses++);
 								if(getStackInSlot(1).getItemDamage() >= getStackInSlot(1).getMaxDamage()) {
-									setInventorySlotContents(1, null);
+									setInventorySlotContents(1, ItemStack.EMPTY);
 								}
 							}
 							if (markBlack) {
 								getStackInSlot(0).setItemDamage(getStackInSlot(0).getItemDamage() + blackUses);
 								if(getStackInSlot(0).getItemDamage() >= getStackInSlot(0).getMaxDamage()) {
-									setInventorySlotContents(0, null);
+									setInventorySlotContents(0, ItemStack.EMPTY);
 								}
 							}
 							return new Object[] { true };
@@ -436,27 +437,23 @@ public class PrinterTE extends TileEntity implements ITickable, Environment, IIn
 
 	@Override
 	public int getSizeInventory() {
-		return this.printerItemStacks.length;
+		return this.printerItemStacks.size();
 	}
 
 	@Override
 	public boolean isEmpty() {
-		for(ItemStack s : printerItemStacks)
-		{
-			if (!s.isEmpty()) return false;
-		}
-		return true;
+		return this.printerItemStacks.isEmpty();
 	}
 
 	@Override
 	public ItemStack getStackInSlot(int i) {
-		return this.printerItemStacks[i];
+		return this.printerItemStacks.get(i);
 	}
 
 	@Override
 	public ItemStack decrStackSize(int slot, int amt) {
 		ItemStack stack = getStackInSlot(slot);
-		if (stack != null) {
+		if (!stack.isEmpty()) {
 			if (stack.getCount() <= amt) {
 				setInventorySlotContents(slot, ItemStack.EMPTY);
 			} else {
@@ -485,7 +482,7 @@ public class PrinterTE extends TileEntity implements ITickable, Environment, IIn
 
 	@Override
 	public void setInventorySlotContents(int i, ItemStack itemstack) {
-		this.printerItemStacks[i] = itemstack;
+		this.printerItemStacks.set(i, itemstack);
 		if (!itemstack.isEmpty() && itemstack.getCount() > this.getInventoryStackLimit())
 		{
 			itemstack.setCount(this.getInventoryStackLimit());
